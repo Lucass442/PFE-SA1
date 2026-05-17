@@ -15,11 +15,8 @@ function adicionar() {
         return; 
     }
 
-    // Cálculo simplificado
     const bruto = horas * PRECOS[servico];
     const total = (bruto * (1 + imposto/100) * (1 - desconto/100)) * (1 + urgencia/100);
-
-    // Converte data de YYYY-MM-DD para DD/MM/YYYY
     const [ano, mes, dia] = prazo.split("-");
     const prazoFormatado = `${dia}/${mes}/${ano}`;
 
