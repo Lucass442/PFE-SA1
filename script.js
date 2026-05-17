@@ -1,27 +1,36 @@
-var precos = { "HTML": 30, "CSS": 50, "JavaScript": 40 };
-var tarefas = [];
+const PRECOS = { "HTML": 30, "CSS": 50, "JavaScript": 40 };
+let tarefas = [];
 
 function adicionar() {
-    var empresa = document.getElementById("empresa").value;
-    var servico = document.getElementById("servico").value;
-    var horas = parseFloat(document.getElementById("horas").value);
-    var imposto = parseFloat(document.getElementById("imposto").value) || 0;
-    var desconto = parseFloat(document.getElementById("desconto").value) || 0;
-    var urgencia = parseFloat(document.getElementById("urgencia").value) || 0;
-    var prazo = document.getElementById("prazo").value;
+    const empresa = document.getElementById("empresa").value;
+    const servico = document.getElementById("servico").value;
+    const horas = parseFloat(document.getElementById("horas").value);
+    const imposto = parseFloat(document.getElementById("imposto").value) || 0;
+    const desconto = parseFloat(document.getElementById("desconto").value) || 0;
+    const urgencia = parseFloat(document.getElementById("urgencia").value) || 0;
+    const prazo = document.getElementById("prazo").value;
 
-    if (!empresa || !servico || !horas || !prazo) { alert("Preencha todos os campos!"); return; }
+    if (!empresa || !servico || !horas || !prazo) { 
+        alert("Preencha todos os campos!"); 
+        return; 
+    }
 
-    var bruto = horas * precos[servico];
-    var comImposto = bruto * (1 + imposto / 100);
-    var valorDesconto = comImposto * (desconto / 100);
-    var comDesconto = comImposto - valorDesconto;
-    var valorUrgencia = comDesconto * (urgencia / 100);
-    var total = comDesconto + valorUrgencia;
+    // Cálculo simplificado
+    const bruto = horas * PRECOS[servico];
+    const total = (bruto * (1 + imposto/100) * (1 - desconto/100)) * (1 + urgencia/100);
 
-    var p = prazo.split("-");
+    // Converte data de YYYY-MM-DD para DD/MM/YYYY
+    const [ano, mes, dia] = prazo.split("-");
+    const prazoFormatado = `${dia}/${mes}/${ano}`;
 
-    tarefas.push({ id: Date.now(), empresa: empresa, servico: servico, horas: horas, bruto: bruto, imposto: bruto * (imposto / 100), desconto: valorDesconto, urgencia: valorUrgencia, total: total, prazo: p[2] + "/" + p[1] + "/" + p[0] });
+    tarefas.push({ 
+        id: Date.now(), 
+        empresa, 
+        servico, 
+        horas, 
+        total, 
+        prazo: prazoFormatado 
+    });
 
     console.log("Total = R$ " + total.toFixed(2));
     resetar();
@@ -39,37 +48,32 @@ function resetar() {
 }
 
 function remover(id) {
-    var nova = [];
-    for (var i = 0; i < tarefas.length; i++) {
-        if (tarefas[i].id !== id) nova.push(tarefas[i]);
-    }
-    tarefas = nova;
+    tarefas = tarefas.filter(t => t.id !== id);
     atualizar();
 }
 
 function atualizar() {
-    var lista = document.getElementById("lista");
-    lista.innerHTML = "";
+    const lista = document.getElementById("lista");
+    
     if (tarefas.length === 0) {
         lista.innerHTML = '<p class="vazio">Nenhuma tarefa adicionada.</p>';
+        return;
     }
 
-    for (var i = 0; i < tarefas.length; i++) {
-        var t = tarefas[i];
-
-        var div = document.createElement("div");
-        div.className = "card-tarefa";
-        var txt = t.empresa + " | " + t.servico + " | " + t.horas + "h | " + t.prazo + " | R$ " + t.total.toFixed(2);
-
-        if (t.total < 50) {
-            div.innerHTML = '<span class="valor-baixo">' + txt + ' ⚠️</span>';
-        } else {
-            div.innerHTML = "<span>" + txt + "</span>";
-        }
-        div.innerHTML += ' <button class="btn-x" onclick="remover(' + t.id + ')">✕</button>';
-        lista.appendChild(div);
-    }
-
+    lista.innerHTML = tarefas.map(t => {
+        const valor = t.total.toFixed(2);
+        const aviso = t.total < 50 ? '⚠️' : '';
+        const classe = t.total < 50 ? 'valor-baixo' : '';
+        
+        return `
+            <div class="card-tarefa">
+                <span class="${classe}">
+                    ${t.empresa} | ${t.servico} | ${t.horas}h | ${t.prazo} | R$ ${valor} ${aviso}
+                </span>
+                <button class="btn-x" onclick="remover(${t.id})">✕</button>
+            </div>
+        `;
+    }).join("");
 }
 
 atualizar();
